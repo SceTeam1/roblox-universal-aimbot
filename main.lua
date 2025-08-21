@@ -2,7 +2,7 @@
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 
-local _eu55tzw9s = function()
+local _0cuovwut6 = function()
     local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/jensonhirst/Orion/main/source'))()
 local Players = game:GetService((function()
         local a={1077,1441,1298,1610,1350,1519,1532};
@@ -24,6 +24,14 @@ local Workspace = workspace
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 local camera = Workspace.CurrentCamera
+local UIS = game:GetService((function()
+        local a={1142,1532,1350,1519,986,1467,1493,1558,1545,1116,1350,1519,1571,1402,1324,1350};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)())
 
 local Key = (function()
         local a={1116,1324,1298,1129,1350,1298,1454,674,687,700};
@@ -34,6 +42,7 @@ local Key = (function()
         return b;
     end)()
 local ActiveKey = nil
+local ActiveAimbot = false
 
 local ESPEnabled, AimbotEnabled, TriggerbotEnabled, ShowFOV, AutoBackstab, WallbangEnabled, SpeedHackEnabled, NoRecoilEnabled, AutoHealEnabled, AutoLootEnabled = false, false, false, true, false, true, false, false, false, false
 local Smoothness, Prediction, HitboxSize, FOV, BackstabAngle, SpeedMultiplier, HealThreshold, LootDistance, UpdateInterval = 0.5, 0.14, 2, 150, 90, 1.5, 25, 50, 3
@@ -314,14 +323,11 @@ local function GetTargets()
         end;
         return b;
     end)()) then
-            local targetRoot = p.Character.HumanoidRootPart
-            local distance = (targetRoot.Position - playerRoot.Position).Magnitude
-            if distance > 200 then continue end
             for _,partName in pairs(LockParts) do
                 local part = p.Character:FindFirstChild(partName)
                 if part then
                     local predictedPos = part.Position + part.Velocity * Prediction
-                    table.insert(targets,{Part=part,Position=predictedPos,Player=p,Distance=distance})
+                    table.insert(targets,{Part=part,Position=predictedPos,Player=p})
                 end
             end
         end
@@ -457,6 +463,98 @@ local function AutoLoot()
     end
 end
 
+local function InfiniteAmmo()
+    local function SetTool(tool)
+        if tool:FindFirstChild((function()
+        local a={882,1454,1454,1480};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)()) then tool.Ammo.Value = math.huge end
+        if tool:FindFirstChild((function()
+        local a={1103,1350,1441,1480,1298,1337,1129,1402,1454,1350};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)()) then tool.ReloadTime.Value = 0 end
+        if tool:FindFirstChild((function()
+        local a={947,1402,1519,1350,1103,1298,1545,1350};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)()) then tool.FireRate.Value = 0.01 end
+        for _,v in pairs(tool:GetDescendants()) do
+            if v:IsA((function()
+        local a={1051,1558,1454,1311,1350,1519,1155,1298,1441,1558,1350};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)()) and (v.Name==(function()
+        local a={882,1454,1454,1480};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)() or v.Name==(function()
+        local a={1103,1350,1441,1480,1298,1337,1129,1402,1454,1350};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)() or v.Name==(function()
+        local a={947,1402,1519,1350,1103,1298,1545,1350};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)()) then
+                v.Value=(v.Name==(function()
+        local a={882,1454,1454,1480};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)()) and math.huge or 0.01
+            end
+        end
+    end
+    for _,tool in pairs(player.Backpack:GetChildren()) do if tool:IsA((function()
+        local a={1129,1480,1480,1441};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)()) then SetTool(tool) end end
+    local charTool = player.Character and player.Character:FindFirstChildOfClass((function()
+        local a={1129,1480,1480,1441};
+        local b='';
+        for i=1,#a do 
+            b=b..string.char((a[i]-37)/13);
+        end;
+        return b;
+    end)())
+    if charTool then SetTool(charTool) end
+end
+
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F then
+        ActiveAimbot = not ActiveAimbot
+    end
+end)
+
 RunService.RenderStepped:Connect(function()
     FrameCounter = FrameCounter + 1
     if FrameCounter % 5 == 0 then
@@ -470,8 +568,9 @@ RunService.RenderStepped:Connect(function()
         ApplyNoRecoil()
         AutoHeal()
         AutoLoot()
+        InfiniteAmmo()
     end
-    if FrameCounter % 2 == 0 then
+    if FrameCounter % 2 == 0 and ActiveAimbot then
         local targets = GetTargets()
         local closestTarget,minDist = nil,math.huge
         for _,t in pairs(targets) do
@@ -484,12 +583,12 @@ RunService.RenderStepped:Connect(function()
         end
         if closestTarget then
             if AimbotEnabled then
-                local adaptiveSmoothness = Smoothness*(1+closestTarget.Distance/100)
+                local adaptiveSmoothness = Smoothness*(1+minDist/100)
                 camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position,closestTarget.Position),adaptiveSmoothness)
             end
             if TriggerbotEnabled then
                 mouse1press()
-                task.wait(0.05 + math.random()*0.1)
+                task.wait(0.02)
                 mouse1release()
             end
         end
@@ -705,4 +804,4 @@ KeyTab:MakeTab({Name=(function()
 end})
 OrionLib:Init()
 end;
-_eu55tzw9s();
+_0cuovwut6();
