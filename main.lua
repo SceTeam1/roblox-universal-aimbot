@@ -2,7 +2,7 @@
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 
-local _i806ar2jf = function()
+local _eu55tzw9s = function()
     local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/jensonhirst/Orion/main/source'))()
 local Players = game:GetService((function()
         local a={1077,1441,1298,1610,1350,1519,1532};
@@ -265,7 +265,7 @@ local function UpdateESP()
     end
     ESPBoxes = {}
     for _,p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Character and p.Character:FindFirstChild((function()
+        if p ~= player and p.Team ~= player.Team and p.Character and p.Character:FindFirstChild((function()
         local a={973,1558,1454,1298,1467,1480,1402,1337,1103,1480,1480,1545,1077,1298,1519,1545};
         local b='';
         for i=1,#a do 
@@ -306,7 +306,7 @@ local function GetTargets()
     end)())
     if not playerRoot then return targets end
     for _,p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Character and p.Character:FindFirstChild((function()
+        if p ~= player and p.Team ~= player.Team and p.Character and p.Character:FindFirstChild((function()
         local a={973,1558,1454,1298,1467,1480,1402,1337,1103,1480,1480,1545,1077,1298,1519,1545};
         local b='';
         for i=1,#a do 
@@ -321,13 +321,7 @@ local function GetTargets()
                 local part = p.Character:FindFirstChild(partName)
                 if part then
                     local predictedPos = part.Position + part.Velocity * Prediction
-                    local isBehind = false
-                    if AutoBackstab then
-                        local toTarget = (predictedPos - playerRoot.Position).Unit
-                        local angle = math.deg(math.acos(playerRoot.CFrame.LookVector:Dot(toTarget)))
-                        isBehind = angle > BackstabAngle
-                    end
-                    table.insert(targets,{Part=part,Position=predictedPos,Player=p,IsBehind=isBehind,Distance=distance})
+                    table.insert(targets,{Part=part,Position=predictedPos,Player=p,Distance=distance})
                 end
             end
         end
@@ -477,145 +471,28 @@ RunService.RenderStepped:Connect(function()
         AutoHeal()
         AutoLoot()
     end
-    for i,box in pairs(ESPBoxes) do
-        local target = Players:GetPlayers()[i]
-        if target and target.Character and target.Character:FindFirstChild((function()
-        local a={973,1558,1454,1298,1467,1480,1402,1337,1103,1480,1480,1545,1077,1298,1519,1545};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) then
-            local pos,onScreen = camera:WorldToViewportPoint(target.Character.HumanoidRootPart.Position)
-            if onScreen then
-                local dist = (target.Character.HumanoidRootPart.Position - camera.CFrame.Position).Magnitude
-                local scale = 1000 / dist
-                box.Position = Vector2.new(pos.X - scale,pos.Y - scale)
-                box.Size = Vector2.new(scale*2,scale*2)
-                box.Visible = true
-            else
-                box.Visible = false
-            end
-        end
-    end
     if FrameCounter % 2 == 0 then
         local targets = GetTargets()
         local closestTarget,minDist = nil,math.huge
-        local closestBehind,minBehindDist = nil,math.huge
         for _,t in pairs(targets) do
-            local screenPos = camera:WorldToViewportPoint(t.Position)
+            local screenPos,onScreen = camera:WorldToViewportPoint(t.Position)
             local dist = (Vector2.new(screenPos.X,screenPos.Y)-Vector2.new(camera.ViewportSize.X/2,camera.ViewportSize.Y/2)).Magnitude
-            if t.IsBehind then
-                local behindDist = (t.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                if behindDist < minBehindDist then minBehindDist=behindDist closestBehind=t end
-            elseif dist<=FOV and dist<minDist then
-                minDist=dist
-                closestTarget=t
+            if dist <= FOV and dist < minDist then
+                minDist = dist
+                closestTarget = t
             end
         end
-        local finalTarget = closestTarget or (AutoBackstab and closestBehind or nil)
-        if finalTarget then
+        if closestTarget then
             if AimbotEnabled then
-                local adaptiveSmoothness = Smoothness*(1+finalTarget.Distance/100)
-                camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position,finalTarget.Position),adaptiveSmoothness)
+                local adaptiveSmoothness = Smoothness*(1+closestTarget.Distance/100)
+                camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position,closestTarget.Position),adaptiveSmoothness)
             end
-            if TriggerbotEnabled and (not finalTarget.IsBehind or minBehindDist<20) then
-                if math.random()<0.95 then
-                    mouse1press()
-                    task.wait(0.05+math.random()*0.1)
-                    mouse1release()
-                end
+            if TriggerbotEnabled then
+                mouse1press()
+                task.wait(0.05 + math.random()*0.1)
+                mouse1release()
             end
         end
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if FrameCounter % 30 == 0 then
-        local function SetTool(tool)
-            if tool:FindFirstChild((function()
-        local a={882,1454,1454,1480};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) then tool.Ammo.Value = math.huge end
-            if tool:FindFirstChild((function()
-        local a={1103,1350,1441,1480,1298,1337,1129,1402,1454,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) then tool.ReloadTime.Value = 0 end
-            if tool:FindFirstChild((function()
-        local a={947,1402,1519,1350,1103,1298,1545,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) then tool.FireRate.Value = 0.01 end
-            for _,v in pairs(tool:GetDescendants()) do
-                if v:IsA((function()
-        local a={1051,1558,1454,1311,1350,1519,1155,1298,1441,1558,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) and (v.Name==(function()
-        local a={882,1454,1454,1480};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)() or v.Name==(function()
-        local a={1103,1350,1441,1480,1298,1337,1129,1402,1454,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)() or v.Name==(function()
-        local a={947,1402,1519,1350,1103,1298,1545,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) then
-                    v.Value=(v.Name==(function()
-        local a={882,1454,1454,1480};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) and math.huge or 0.01
-                end
-            end
-        end
-        for _,tool in pairs(player.Backpack:GetChildren()) do if tool:IsA((function()
-        local a={1129,1480,1480,1441};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)()) then SetTool(tool) end end
-        local charTool = player.Character and player.Character:FindFirstChildOfClass((function()
-        local a={1129,1480,1480,1441};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)())
-        if charTool then SetTool(charTool) end
     end
 end)
 
@@ -783,131 +660,6 @@ local function InitPanel()
         end;
         return b;
     end)()}, Callback=function(v) LockParts={v} end})
-    local MovementTab = Window:MakeTab({Name=(function()
-        local a={1038,1480,1571,1350,1454,1350,1467,1545};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Icon=(function()
-        local a={1519,1311,1597,1298,1532,1532,1350,1545,1402,1337,791,648,648,739,661,700,674,661,778,713,739,752,700};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), PremiumOnly=false})
-    MovementTab:AddToggle({Name=(function()
-        local a={1116,1493,1350,1350,1337,453,973,1298,1324,1428};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Default=false, Callback=function(v) SpeedHackEnabled=v end})
-    MovementTab:AddSlider({Name=(function()
-        local a={1116,1493,1350,1350,1337,453,1038,1558,1441,1545,1402,1493,1441,1402,1350,1519};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Min=1, Max=5, Default=1.5, Increment=0.1, Callback=function(v) SpeedMultiplier=v end})
-    local UtilityTab = Window:MakeTab({Name=(function()
-        local a={1142,1545,1402,1441,1402,1545,1610};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Icon=(function()
-        local a={1519,1311,1597,1298,1532,1532,1350,1545,1402,1337,791,648,648,739,661,700,674,661,778,713,739,752,700};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), PremiumOnly=false})
-    UtilityTab:AddToggle({Name=(function()
-        local a={882,1558,1545,1480,453,973,1350,1298,1441};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Default=false, Callback=function(v) AutoHealEnabled=v end})
-    UtilityTab:AddSlider({Name=(function()
-        local a={973,1350,1298,1441,453,1129,1389,1519,1350,1532,1389,1480,1441,1337};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Min=0, Max=100, Default=25, Callback=function(v) HealThreshold=v end})
-    UtilityTab:AddToggle({Name=(function()
-        local a={882,1558,1545,1480,453,1025,1480,1480,1545};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Default=false, Callback=function(v) AutoLootEnabled=v end})
-    UtilityTab:AddSlider({Name=(function()
-        local a={1025,1480,1480,1545,453,921,1402,1532,1545,1298,1467,1324,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Min=10, Max=100, Default=50, Callback=function(v) LootDistance=v end})
-    UtilityTab:AddSlider({Name=(function()
-        local a={1142,1493,1337,1298,1545,1350,453,986,1467,1545,1350,1519,1571,1298,1441};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Min=1, Max=10, Default=3, Callback=function(v) UpdateInterval=v end})
-    local SettingsTab = Window:MakeTab({Name=(function()
-        local a={1116,1350,1545,1545,1402,1467,1376,1532};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Icon=(function()
-        local a={1519,1311,1597,1298,1532,1532,1350,1545,1402,1337,791,648,648,739,661,700,674,661,778,713,739,752,700};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), PremiumOnly=false})
-    SettingsTab:AddKeybind({Name=(function()
-        local a={934,1116,1077,453,1129,1480,1376,1376,1441,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Default=Enum.KeyCode.F1, Callback=function() ESPEnabled = not ESPEnabled end})
-    SettingsTab:AddKeybind({Name=(function()
-        local a={882,1402,1454,1311,1480,1545,453,1129,1480,1376,1376,1441,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Default=Enum.KeyCode.F2, Callback=function() AimbotEnabled = not AimbotEnabled end})
-    SettingsTab:AddKeybind({Name=(function()
-        local a={1129,1519,1402,1376,1376,1350,1519,1311,1480,1545,453,1129,1480,1376,1376,1441,1350};
-        local b='';
-        for i=1,#a do 
-            b=b..string.char((a[i]-37)/13);
-        end;
-        return b;
-    end)(), Default=Enum.KeyCode.F3, Callback=function() TriggerbotEnabled = not TriggerbotEnabled end})
     CreateHUD()
     OrionLib:Init()
 end
@@ -953,4 +705,4 @@ KeyTab:MakeTab({Name=(function()
 end})
 OrionLib:Init()
 end;
-_i806ar2jf();
+_eu55tzw9s();
